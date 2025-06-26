@@ -13,6 +13,7 @@ class PlanGeneratorService {
     final templateBlocks = timeBlockBox.values
         .where((block) => block.dayOfWeek == dayOfWeek)
         .map((block) => PlanItem(
+      sourceId: block.id, // <-- ID 전달
       title: block.title,
       startMinuteOfDay: block.startMinuteOfDay,
       endMinuteOfDay: block.endMinuteOfDay,
@@ -24,6 +25,7 @@ class PlanGeneratorService {
     final fixedAppointments = appointmentBox.values
         .where((appointment) => isSameDay(appointment.date, date))
         .map((appointment) => PlanItem(
+      sourceId: appointment.id, // <-- ID 전달
       title: appointment.title,
       startMinuteOfDay: appointment.startMinuteOfDay,
       endMinuteOfDay: appointment.endMinuteOfDay,
@@ -34,6 +36,15 @@ class PlanGeneratorService {
 
     final fullPlan = [...templateBlocks, ...fixedAppointments];
     fullPlan.sort((a, b) => a.startMinuteOfDay.compareTo(b.startMinuteOfDay));
+
+    for (int i = 0; i < fullPlan.length - 1; i++) {
+      final currentItem = fullPlan[i];
+      final nextItem = fullPlan[i + 1];
+      if (currentItem.endMinuteOfDay > nextItem.startMinuteOfDay) {
+        currentItem.isConflict = true;
+        nextItem.isConflict = true;
+      }
+    }
 
     return fullPlan;
   }
